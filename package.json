@@ -1,0 +1,11 @@
+{
+  "name": "circuit-simulator",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "author": "Taksh Biyani",
+  "description": "Drag-and-drop DC circuit simulator with a virtual multimeter",
+  "scripts": {
+    "test": "node --test"
+  }
+}

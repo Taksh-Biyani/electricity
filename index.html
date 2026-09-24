@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Circuit Lab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Circuit Lab</h1>
+    <div class="topbar-actions">
+      <label class="toggle" title="How fast simulated time runs (matters for capacitors)">Time
+        <select id="timeSpeed">
+          <option value="0">Paused</option>
+          <option value="0.01">0.01×</option>
+          <option value="0.1">0.1×</option>
+          <option value="1" selected>1× (real time)</option>
+          <option value="10">10×</option>
+        </select>
+      </label>
+      <span class="clock" id="clock">t = 0.00 s</span>
+      <label class="toggle"><input type="checkbox" id="showLabels" checked> Show readings</label>
+      <label class="toggle"><input type="checkbox" id="showFlow" checked> Show current flow</label>
+      <button id="btnExample">Load example</button>
+      <button id="btnClear">Clear</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="palette" aria-label="Parts">
+      <h2>Parts</h2>
+      <p class="hint">Drag onto the board</p>
+      <div class="part" data-type="wire">
+        <svg viewBox="0 0 60 24"><line x1="4" y1="12" x2="56" y2="12" stroke="#cbd5e1" stroke-width="4" stroke-linecap="round"/></svg>
+        <span>Wire</span>
+      </div>
+      <div class="part" data-type="battery">
+        <svg viewBox="0 0 60 24"><line x1="2" y1="12" x2="12" y2="12" stroke="#94a3b8" stroke-width="3"/><rect x="12" y="4" width="16" height="16" fill="#1f2937"/><rect x="28" y="4" width="16" height="16" fill="#b45309"/><rect x="44" y="8" width="4" height="8" fill="#d97706"/><line x1="48" y1="12" x2="58" y2="12" stroke="#94a3b8" stroke-width="3"/></svg>
+        <span>Battery</span>
+      </div>
+      <div class="part" data-type="resistor">
+        <svg viewBox="0 0 60 24"><line x1="2" y1="12" x2="58" y2="12" stroke="#94a3b8" stroke-width="3"/><rect x="14" y="6" width="32" height="12" rx="5" fill="#d6b98c"/><rect x="20" y="6" width="3" height="12" fill="#92400e"/><rect x="27" y="6" width="3" height="12" fill="#111"/><rect x="34" y="6" width="3" height="12" fill="#92400e"/></svg>
+        <span>Resistor</span>
+      </div>
+      <div class="part" data-type="bulb">
+        <svg viewBox="0 0 60 24"><line x1="2" y1="12" x2="58" y2="12" stroke="#94a3b8" stroke-width="3"/><circle cx="30" cy="12" r="10" fill="#fef3c7" stroke="#e5e7eb"/><path d="M24 12 l2 -3 l2 6 l2 -6 l2 6 l2 -3" stroke="#78350f" fill="none"/></svg>
+        <span>Light bulb</span>
+      </div>
+      <div class="part" data-type="capacitor">
+        <svg viewBox="0 0 60 24"><line x1="2" y1="12" x2="26" y2="12" stroke="#94a3b8" stroke-width="3"/><line x1="34" y1="12" x2="58" y2="12" stroke="#94a3b8" stroke-width="3"/><rect x="24" y="2" width="4" height="20" fill="#60a5fa"/><rect x="32" y="2" width="4" height="20" fill="#60a5fa"/></svg>
+        <span>Capacitor</span>
+      </div>
+      <div class="part" data-type="switch">
+        <svg viewBox="0 0 60 24"><line x1="2" y1="16" x2="18" y2="16" stroke="#94a3b8" stroke-width="3"/><line x1="42" y1="16" x2="58" y2="16" stroke="#94a3b8" stroke-width="3"/><circle cx="18" cy="16" r="3" fill="#e2e8f0"/><circle cx="42" cy="16" r="3" fill="#e2e8f0"/><line x1="18" y1="16" x2="40" y2="5" stroke="#e2e8f0" stroke-width="3" stroke-linecap="round"/></svg>
+        <span>Switch</span>
+      </div>
+      <div class="part" data-type="ammeter">
+        <svg viewBox="0 0 60 24"><line x1="2" y1="12" x2="58" y2="12" stroke="#94a3b8" stroke-width="3"/><circle cx="30" cy="12" r="10" fill="#f1f5f9"/><text x="30" y="16.5" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">A</text></svg>
+        <span>Ammeter</span>
+      </div>
+      <div class="help">
+        <h3>Controls</h3>
+        <ul>
+          <li><b>Drag</b> on empty board or from a terminal to draw a wire</li>
+          <li><b>Click</b> a part to select it, then drag its end handles to stretch it</li>
+          <li><b>R</b> rotate · <b>F</b> flip · <b>Del</b> delete</li>
+          <li><b>Double-click</b> a switch to toggle it</li>
+          <li>Capacitors charge over time. Use the <b>Time</b> control to slow down or speed up</li>
+          <li>Drag the <b>red/black probes</b> onto terminals to measure</li>
+          <li><b>Hover</b> any part to see its V, I, R, and P</li>
+        </ul>
+      </div>
+    </aside>
+
+    <section class="workspace" id="workspace">
+      <canvas id="board"></canvas>
+      <div class="banner" id="banner" hidden>⚠ Short circuit: a battery is being drained through almost no resistance</div>
+      <div class="tooltip" id="tooltip" hidden></div>
+
+      <div class="meter" id="meter">
+        <div class="meter-grip" id="meterGrip">MULTIMETER</div>
+        <div class="lcd">
+          <div class="lcd-value" id="lcdValue">----</div>
+          <div class="lcd-hint" id="lcdHint">attach both probes</div>
+        </div>
+        <div class="dial" role="radiogroup" aria-label="Meter mode">
+          <button data-mode="V" class="active" title="Voltmeter: voltage between probes">V</button>
+          <button data-mode="A" title="Ammeter: current through the meter (connect it in series!)">A</button>
+          <button data-mode="R" title="Ohmmeter: resistance between probes">Ω</button>
+        </div>
+        <div class="jacks">
+          <span class="jack black" id="jackBlack">COM</span>
+          <span class="jack red" id="jackRed">+</span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="inspector" id="inspector" aria-label="Inspector"></aside>
+  </main>
+
+  <script src="src/circuit.js"></script>
+  <script src="src/app.js"></script>
+</body>
+</html>
